@@ -1,8 +1,10 @@
+import os
+import sys
+import subprocess
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from config import VK_TOKEN, GROUP_ID, OPERATOR_IDS
-
 # Константы команд
 COMMANDS = {
     'hello': 'привет',
@@ -59,6 +61,23 @@ RESPONSE_MESSAGES = {
 vk_session = vk_api.VkApi(token=VK_TOKEN)
 vk = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
+
+# Функция для перезапуска скрипта
+def restart_script():
+    """Перезапускает текущий скрипт."""
+    print("Перезапуск скрипта...")
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
+# Функция для обновления из GitHub
+def update_from_github():
+    """Обновляет код из репозитория GitHub и перезапускает скрипт."""
+    print("Обновление из GitHub...")
+    try:
+        subprocess.run(["git", "pull"], check=True)
+        restart_script()
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка при обновлении из GitHub: {e}")
 
 # Состояния пользователей
 user_states = {}
@@ -402,6 +421,11 @@ def handle_message(user_id, text):
             send_message(user_id, RESPONSE_MESSAGES['invalid_option'], keyboard=free_chat_keyboard())
 
 # Основной цикл прослушивания сообщений
-for event in longpoll.listen():
-    if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
-        handle_message(event.user_id, event.text)
+while True:
+    try:
+        for event in longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
+                handle_message(event.user_id, event.text)
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        restart_script()
