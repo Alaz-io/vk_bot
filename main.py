@@ -5,6 +5,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from config import VK_TOKEN, GROUP_ID, OPERATOR_IDS
+
 # Константы команд
 COMMANDS = {
     'hello': 'привет',
