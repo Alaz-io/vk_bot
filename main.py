@@ -62,6 +62,8 @@ vk_session = vk_api.VkApi(token=VK_TOKEN)
 vk = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 
+is_contact_operator = False
+
 # Функция для перезапуска скрипта
 def restart_script():
     """Перезапускает текущий скрипт."""
@@ -246,6 +248,24 @@ def faq_keyboard():
         keyboard.add_line()
     keyboard.add_button(COMMANDS['back'], color=VkKeyboardColor.SECONDARY)
     return keyboard
+
+def handle_operator_message(event):
+    global is_contact_operator
+    user_id = event.user_id
+    message = event.text
+
+    if is_contact_operator:
+        # Проверяем, не ввел ли оператор команду для завершения общения
+        if message.lower() == "/end":
+            # Выходим из режима "Contact operator"
+            is_contact_operator = False
+            send_message(user_id, "Контакт с оператором завершен.")
+        else:
+            # Продолжаем отправлять сообщения оператору
+            send_message_to_operator(user_id, message)
+    else:
+        # Обычная логика обработки сообщений
+        handle_normal_user_message(event)
 
 def handle_message(user_id, text):
     """
