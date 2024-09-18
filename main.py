@@ -62,8 +62,6 @@ vk_session = vk_api.VkApi(token=VK_TOKEN)
 vk = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 
-is_contact_operator = False
-
 # Функция для перезапуска скрипта
 def restart_script():
     """Перезапускает текущий скрипт."""
@@ -249,24 +247,6 @@ def faq_keyboard():
     keyboard.add_button(COMMANDS['back'], color=VkKeyboardColor.SECONDARY)
     return keyboard
 
-def handle_operator_message(event):
-    global is_contact_operator
-    user_id = event.user_id
-    message = event.text
-
-    if is_contact_operator:
-        # Проверяем, не ввел ли оператор команду для завершения общения
-        if message.lower() == "/end":
-            # Выходим из режима "Contact operator"
-            is_contact_operator = False
-            send_message(user_id, "Контакт с оператором завершен.")
-        else:
-            # Продолжаем отправлять сообщения оператору
-            send_message_to_operator(user_id, message)
-    else:
-        # Обычная логика обработки сообщений
-        handle_normal_user_message(event)
-
 def handle_message(user_id, text):
     """
     Обрабатывает сообщения пользователей и управляет состоянием диалога.
@@ -381,15 +361,15 @@ def handle_message(user_id, text):
         elif text == COMMANDS['leave_message']:
             send_message(user_id, RESPONSE_MESSAGES['enter_description'], keyboard=None)
             user_states[user_id] = {'step': 'leave_message'}
-        elif text == COMMANDS['start_chat']:
-            available_operator = next((op_id for op_id, status in operator_status.items() if status), None)
-            if available_operator:
-                operator_status[available_operator] = False
-                send_message(user_id, f"Вы подключены к оператору {available_operator}.", keyboard=free_chat_keyboard())
-                send_message(available_operator, f"Пользователь {user_id} подключен к вам.", keyboard=None)
-                user_states[user_id] = {'step': 'chatting', 'operator_id': available_operator}
-            else:
-                send_message(user_id, RESPONSE_MESSAGES['all_operators_busy'], keyboard=contact_operator_keyboard())
+#        elif text == COMMANDS['start_chat']:
+#            available_operator = next((op_id for op_id, status in operator_status.items() if status), None)
+#            if available_operator:
+#                operator_status[available_operator] = False
+#                send_message(user_id, f"Вы подключены к оператору {available_operator}.", keyboard=free_chat_keyboard())
+#                send_message(available_operator, f"Пользователь {user_id} подключен к вам.", keyboard=None)
+#                user_states[user_id] = {'step': 'chatting', 'operator_id': available_operator}
+#            else:
+#                send_message(user_id, RESPONSE_MESSAGES['all_operators_busy'], keyboard=contact_operator_keyboard())
         else:
             send_message(user_id, RESPONSE_MESSAGES['invalid_option'], keyboard=contact_operator_keyboard())
 
